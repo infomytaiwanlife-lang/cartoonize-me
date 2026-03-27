@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ToonMe \u2014 Cartoon Avatar Generator</title>
+  <title>ToonMe — Cartoon Avatar Generator</title>
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,7 +27,7 @@
       min-height: 100vh;
     }
 
-    /* \u2500\u2500 HEADER \u2500\u2500 */
+    /* ── HEADER ── */
     header {
       background: var(--ink);
       padding: 1rem 2rem;
@@ -55,7 +55,7 @@
       text-transform: uppercase;
     }
 
-    /* \u2500\u2500 API KEY BANNER \u2500\u2500 */
+    /* ── API KEY BANNER ── */
     #key-banner {
       background: #fff8dc;
       border-bottom: 3px solid var(--yellow);
@@ -116,7 +116,7 @@
     .key-hint { font-size: 0.75rem; color: #777; }
     .key-hint a { color: var(--blue); font-weight: 700; }
 
-    /* \u2500\u2500 MAIN LAYOUT \u2500\u2500 */
+    /* ── MAIN LAYOUT ── */
     main {
       max-width: 1080px;
       margin: 0 auto;
@@ -129,7 +129,7 @@
 
     @media (max-width: 720px) { main { grid-template-columns: 1fr; } }
 
-    /* \u2500\u2500 PANEL \u2500\u2500 */
+    /* ── PANEL ── */
     .panel {
       background: white;
       border: 3px solid var(--ink);
@@ -149,4 +149,552 @@
 
     .panel-body { padding: 1.2rem; }
 
-    /* \u2500\u2500 STYLE GRID
+    /* ── STYLE GRID ── */
+    .style-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .style-btn {
+      border: 3px solid var(--ink);
+      border-radius: var(--radius);
+      padding: 0.5rem 0.3rem;
+      text-align: center;
+      cursor: pointer;
+      background: var(--paper);
+      font-family: 'Nunito', sans-serif;
+      font-weight: 800;
+      font-size: 0.78rem;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
+      box-shadow: 3px 3px 0 var(--ink);
+      line-height: 1.2;
+    }
+
+    .style-btn .emoji { font-size: 1.4rem; display: block; margin-bottom: 0.2rem; }
+
+    .style-btn:hover {
+      background: #fff0a0;
+      transform: translate(-1px,-1px);
+      box-shadow: 4px 4px 0 var(--ink);
+    }
+
+    .style-btn.active {
+      background: var(--yellow);
+      transform: translate(2px,2px);
+      box-shadow: 1px 1px 0 var(--ink);
+    }
+
+    /* ── CUSTOM STYLE INPUT ── */
+    .custom-style-wrap { margin-bottom: 1rem; }
+    .custom-style-wrap label { display: block; font-weight: 800; font-size: 0.82rem; margin-bottom: 0.35rem; }
+
+    #custom-style {
+      width: 100%;
+      padding: 0.5rem 0.75rem;
+      border: 3px solid var(--ink);
+      border-radius: var(--radius);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.88rem;
+      background: var(--paper);
+      box-shadow: 3px 3px 0 var(--ink);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #custom-style:focus { border-color: var(--blue); box-shadow: 3px 3px 0 var(--blue); }
+
+    /* ── DESCRIPTION ── */
+    .desc-wrap { margin-bottom: 1rem; }
+    .desc-wrap label { display: block; font-weight: 800; font-size: 0.82rem; margin-bottom: 0.35rem; }
+
+    #description {
+      width: 100%;
+      height: 110px;
+      padding: 0.6rem 0.75rem;
+      border: 3px solid var(--ink);
+      border-radius: var(--radius);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.9rem;
+      resize: vertical;
+      background: var(--paper);
+      box-shadow: 3px 3px 0 var(--ink);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #description:focus { border-color: var(--blue); box-shadow: 3px 3px 0 var(--blue); }
+
+    /* ── GENERATE BUTTON ── */
+    #generate-btn {
+      width: 100%;
+      padding: 0.85rem;
+      background: var(--red);
+      color: white;
+      border: 3px solid var(--ink);
+      border-radius: var(--radius);
+      font-family: 'Bangers', cursive;
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    #generate-btn:hover:not(:disabled) { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--ink); }
+    #generate-btn:active:not(:disabled) { transform: translate(3px,3px); box-shadow: 2px 2px 0 var(--ink); }
+    #generate-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: 3px 3px 0 #aaa; }
+
+    /* ── PROMPT PREVIEW ── */
+    #prompt-preview {
+      margin-top: 1rem;
+      padding: 0.65rem 0.9rem;
+      background: var(--paper);
+      border: 2px dashed #ccc;
+      border-radius: var(--radius);
+      font-size: 0.78rem;
+      color: #777;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+      display: none;
+    }
+    #prompt-preview strong {
+      display: block;
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #aaa;
+      margin-bottom: 0.25rem;
+    }
+
+    /* ── OUTPUT PANEL ── */
+    .output-inner {
+      min-height: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1.2rem;
+    }
+
+    /* Placeholder */
+    .placeholder { text-align: center; color: #bbb; }
+    .placeholder .big-emoji {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 0.5rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    .placeholder p { font-weight: 700; font-size: 0.9rem; }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50%       { transform: translateY(-8px); }
+    }
+
+    /* Loading */
+    .loading-wrap { text-align: center; display: none; }
+    .spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid #eee;
+      border-top-color: var(--red);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-wrap p { font-weight: 800; font-size: 0.9rem; color: #777; }
+
+    /* Result image */
+    #result-img {
+      display: none;
+      width: 100%;
+      max-width: 400px;
+      border: 3px solid var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      animation: pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes pop-in {
+      from { transform: scale(0.85); opacity: 0; }
+      to   { transform: scale(1);    opacity: 1; }
+    }
+
+    /* Error */
+    #error-msg {
+      display: none;
+      background: #fff0f0;
+      border: 3px solid var(--red);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      color: var(--red);
+      font-weight: 800;
+      font-size: 0.85rem;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* Download */
+    #download-btn {
+      display: none;
+      padding: 0.6rem 1.4rem;
+      background: #22c55e;
+      color: white;
+      border: 3px solid var(--ink);
+      border-radius: var(--radius);
+      font-family: 'Bangers', cursive;
+      font-size: 1.1rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    #download-btn:hover { transform: translate(-2px,-2px); box-shadow: 7px 7px 0 var(--ink); }
+
+    /* Meta */
+    #result-meta {
+      display: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #888;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div>
+      <div class="logo">Toon<span>Me</span></div>
+      <div class="header-sub">AI Cartoon Avatar Generator</div>
+    </div>
+  </header>
+
+  <!-- API Key Banner -->
+  <div id="key-banner">
+    <label for="key-input">🔑 Pollinations API Key</label>
+    <div class="key-input-wrap">
+      <input
+        id="key-input"
+        type="password"
+        placeholder="pk_xxxxxxxxxxxxxxxx"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="btn-save-key" onclick="saveKey()">Save</button>
+    </div>
+    <span id="key-status"></span>
+    <span class="key-hint">
+      Get yours free at <a href="https://enter.pollinations.ai" target="_blank" rel="noopener">enter.pollinations.ai</a>
+    </span>
+  </div>
+
+  <main>
+    <!-- LEFT: Controls -->
+    <div>
+      <div class="panel" style="margin-bottom:1.5rem">
+        <div class="panel-title">🎨 Pick a Style</div>
+        <div class="panel-body">
+          <div class="style-grid" id="style-grid"></div>
+          <div class="custom-style-wrap">
+            <label for="custom-style">✏️ Or type your own style</label>
+            <input
+              id="custom-style"
+              type="text"
+              placeholder="e.g. Studio Ghibli, Pixar, Looney Tunes…"
+              oninput="onCustomStyleInput()"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">🧑 Describe Yourself</div>
+        <div class="panel-body">
+          <div class="desc-wrap">
+            <label for="description">Physical appearance, outfit, expression…</label>
+            <textarea
+              id="description"
+              placeholder="e.g. tall person with curly red hair, glasses, wearing a blue hoodie, happy expression"
+            ></textarea>
+          </div>
+          <button id="generate-btn" onclick="generate()">⚡ GENERATE AVATAR</button>
+          <div id="prompt-preview">
+            <strong>Prompt sent to API</strong>
+            <span id="prompt-text"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Output -->
+    <div class="panel">
+      <div class="panel-title">🖼️ Your Cartoon Avatar</div>
+      <div class="output-inner" id="output">
+        <div class="placeholder" id="placeholder">
+          <span class="big-emoji">🎭</span>
+          <p>Pick a style and describe yourself,<br>then hit Generate!</p>
+        </div>
+        <div class="loading-wrap" id="loading">
+          <div class="spinner"></div>
+          <p>Drawing your cartoon…</p>
+        </div>
+        <img id="result-img" alt="Generated cartoon avatar" />
+        <div id="error-msg"></div>
+        <a id="download-btn" download="toonme-avatar.jpg">⬇ Download Avatar</a>
+        <div id="result-meta"></div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ── STYLES DATA ──────────────────────────────────────────────────────────
+    const STYLES = [
+      {
+        id: 'simpsons',
+        label: 'The Simpsons',
+        emoji: '🟡',
+        prompt: 'in the style of The Simpsons animated cartoon, yellow skin, overbite, simple design, Matt Groening art style'
+      },
+      {
+        id: 'southpark',
+        label: 'South Park',
+        emoji: '🧢',
+        prompt: 'in the style of South Park animated show, simple flat cutout cartoon character, Trey Parker Matt Stone art style'
+      },
+      {
+        id: 'pokemon',
+        label: 'Pokémon',
+        emoji: '⚡',
+        prompt: 'as a Pokémon trainer character, in the style of Pokémon anime, Ken Sugimori art style, vibrant colors, clean lines'
+      },
+      {
+        id: 'disney',
+        label: 'Disney',
+        emoji: '🏰',
+        prompt: 'in the style of classic Disney animation, expressive eyes, clean lines, vibrant Disney art style, hand-drawn look'
+      },
+      {
+        id: 'manga',
+        label: 'Manga / Anime',
+        emoji: '🎌',
+        prompt: 'as a manga anime character, large expressive eyes, Japanese anime art style, clean ink line art, cel shading'
+      },
+      {
+        id: 'pixar',
+        label: 'Pixar 3D',
+        emoji: '🎬',
+        prompt: 'in the style of Pixar 3D animated movie character, highly detailed, expressive, soft cinematic lighting, subsurface scattering'
+      },
+      {
+        id: 'looney',
+        label: 'Looney Tunes',
+        emoji: '🐰',
+        prompt: 'in the style of classic Looney Tunes cartoon, exaggerated rubbery features, Warner Bros classic animation, bold outlines'
+      },
+      {
+        id: 'adventure',
+        label: 'Adventure Time',
+        emoji: '🗡️',
+        prompt: 'in the style of Adventure Time cartoon, simple rounded shapes, flat bright colors, Pendleton Ward art style'
+      },
+      {
+        id: 'custom',
+        label: 'Custom…',
+        emoji: '✨',
+        prompt: null
+      }
+    ];
+
+    let selectedStyleId = null;
+    let apiKey = localStorage.getItem('pollinations_key') || '';
+
+    // ── INIT ─────────────────────────────────────────────────────────────────
+    function init() {
+      renderStyleGrid();
+      if (apiKey) {
+        document.getElementById('key-input').value = apiKey;
+        setKeyStatus(true);
+      }
+    }
+
+    function renderStyleGrid() {
+      const grid = document.getElementById('style-grid');
+      STYLES.forEach(style => {
+        const btn = document.createElement('button');
+        btn.className = 'style-btn';
+        btn.dataset.id = style.id;
+        btn.innerHTML = `<span class="emoji">${style.emoji}</span>${style.label}`;
+        btn.addEventListener('click', () => selectStyle(style.id));
+        grid.appendChild(btn);
+      });
+    }
+
+    // ── KEY MANAGEMENT ────────────────────────────────────────────────────────
+    function saveKey() {
+      const val = document.getElementById('key-input').value.trim();
+      if (!val) {
+        setKeyStatus(false, 'Enter a key first.');
+        return;
+      }
+      apiKey = val;
+      localStorage.setItem('pollinations_key', apiKey);
+      setKeyStatus(true, 'Saved!');
+    }
+
+    function setKeyStatus(ok, msg) {
+      const el = document.getElementById('key-status');
+      if (ok) {
+        el.textContent = msg || '✅ Key saved';
+        el.className = 'ok';
+      } else {
+        el.textContent = '⚠️ ' + (msg || 'No key set');
+        el.className = 'warn';
+      }
+    }
+
+    // ── STYLE SELECTION ───────────────────────────────────────────────────────
+    function selectStyle(id) {
+      selectedStyleId = id;
+      document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === id);
+      });
+      if (id !== 'custom') {
+        document.getElementById('custom-style').value = '';
+      }
+    }
+
+    function onCustomStyleInput() {
+      const val = document.getElementById('custom-style').value.trim();
+      if (val) {
+        selectStyle('custom');
+      } else if (selectedStyleId === 'custom') {
+        selectedStyleId = null;
+        document.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
+      }
+    }
+
+    // ── PROMPT BUILDER ────────────────────────────────────────────────────────
+    function buildPrompt() {
+      const description = document.getElementById('description').value.trim();
+      const customStyle = document.getElementById('custom-style').value.trim();
+
+      if (!description) throw new Error('Please describe yourself first.');
+      if (!selectedStyleId) throw new Error('Please pick a cartoon style.');
+
+      let stylePrompt;
+      if (selectedStyleId === 'custom') {
+        if (!customStyle) throw new Error('Enter a custom style or pick a preset.');
+        stylePrompt = `in the style of ${customStyle} cartoon animation`;
+      } else {
+        stylePrompt = STYLES.find(s => s.id === selectedStyleId).prompt;
+      }
+
+      return `cartoon avatar portrait of a person, ${description}, ${stylePrompt}, character art, clean illustration, white background`;
+    }
+
+    // ── GENERATE ──────────────────────────────────────────────────────────────
+    async function generate() {
+      if (!apiKey) {
+        setKeyStatus(false, 'Add your API key first!');
+        document.getElementById('key-input').focus();
+        return;
+      }
+
+      let prompt;
+      try {
+        prompt = buildPrompt();
+      } catch (e) {
+        showError(e.message);
+        return;
+      }
+
+      setLoading(true);
+      showPromptPreview(prompt);
+
+      // Random seed so re-generating always yields a different result.
+      const seed = Math.floor(Math.random() * 999999);
+      // image.pollinations.ai is the direct image endpoint; key goes as query param.
+      const url = [
+        'https://image.pollinations.ai/prompt/',
+        encodeURIComponent(prompt),
+        '?width=512&height=512&model=flux&nologo=true',
+        '&seed=', seed,
+        '&key=', encodeURIComponent(apiKey)
+      ].join('');
+
+      try {
+        await loadImage(url);
+        showResult(url);
+      } catch {
+        showError('Generation failed. Double-check your API key and try again.');
+      } finally {
+        // Only re-enable the button; do NOT touch placeholder visibility here —
+        // showResult / showError already manage that correctly.
+        document.getElementById('generate-btn').disabled = false;
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    // Wraps img.src load in a promise so we can await it cleanly.
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = document.getElementById('result-img');
+        const timer = setTimeout(() => reject(new Error('Timeout')), 90000);
+        img.onload  = () => { clearTimeout(timer); resolve(); };
+        img.onerror = () => { clearTimeout(timer); reject(new Error('Load error')); };
+        img.src = src;
+      });
+    }
+
+    // ── UI STATE HELPERS ──────────────────────────────────────────────────────
+    function setLoading(on) {
+      document.getElementById('loading').style.display     = on ? 'block' : 'none';
+      document.getElementById('placeholder').style.display = on ? 'none'  : '';
+      document.getElementById('generate-btn').disabled     = on;
+      if (on) {
+        document.getElementById('result-img').style.display   = 'none';
+        document.getElementById('error-msg').style.display    = 'none';
+        document.getElementById('download-btn').style.display = 'none';
+        document.getElementById('result-meta').style.display  = 'none';
+        document.getElementById('placeholder').style.display  = 'none';
+      }
+    }
+
+    function showResult(url) {
+      document.getElementById('result-img').style.display = 'block';
+
+      const dl = document.getElementById('download-btn');
+      dl.href = url;
+      dl.style.display = 'inline-block';
+
+      const styleLabel = selectedStyleId === 'custom'
+        ? document.getElementById('custom-style').value.trim()
+        : STYLES.find(s => s.id === selectedStyleId)?.label;
+
+      const meta = document.getElementById('result-meta');
+      meta.textContent = `Style: ${styleLabel} • 512×512 • Powered by Pollinations AI`;
+      meta.style.display = 'block';
+
+      document.getElementById('placeholder').style.display = 'none';
+    }
+
+    function showError(msg) {
+      setLoading(false);
+      document.getElementById('error-msg').textContent = '⚠️ ' + msg;
+      document.getElementById('error-msg').style.display = 'block';
+      document.getElementById('placeholder').style.display = 'none';
+    }
+
+    function showPromptPreview(prompt) {
+      document.getElementById('prompt-text').textContent = prompt;
+      document.getElementById('prompt-preview').style.display = 'block';
+    }
+
+    // ── BOOT ──────────────────────────────────────────────────────────────────
+    init();
+  </script>
+</body>
+</html>
