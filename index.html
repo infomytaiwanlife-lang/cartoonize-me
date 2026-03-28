@@ -540,14 +540,19 @@
     // Step 2: on return, grab key from URL fragment (#api_key=sk_...)
     // Fragment never hits server logs — it's client-only. Safe.
     function handleRedirectKey() {
-      const hash = new URLSearchParams(location.hash.slice(1));
-      const key = hash.get('api_key');
+      const raw = location.hash; // e.g. "#api_key=sk_abc123"
+      if (!raw || !raw.includes('api_key=')) return;
+
+      // Regex is safer than URLSearchParams here — avoids encoding edge cases
+      const match = raw.match(/[#&]api_key=([^&]+)/);
+      if (!match) return;
+      const key = decodeURIComponent(match[1]);
       if (!key) return;
 
       apiKey = key;
       localStorage.setItem('pollinations_key', apiKey);
 
-      // Clean the fragment from the URL so reloads don't re-process it
+      // Clean the fragment so a reload doesn't re-process it
       history.replaceState(null, '', location.pathname + location.search);
 
       fetchUserInfo();
