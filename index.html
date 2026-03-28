@@ -377,7 +377,7 @@
   <header>
     <div>
       <div class="logo">Toon<span>Me</span></div>
-      <div class="header-sub">AI Cartoon Avatar Generator!!</div>
+      <div class="header-sub">AI Cartoon Avatar Generator</div>
     </div>
   </header>
 
@@ -398,6 +398,9 @@
     </button>
     <span class="byop-label">Powered by BYOP</span>
   </div>
+
+  <!-- DEBUG PANEL — remove before shipping -->
+  <div id="debug-output" style="display:none; background:#1a1a2e; color:#ffd600; font-family:monospace; font-size:0.8rem; padding:0.75rem 2rem; border-bottom:3px solid #ffd600;"></div>
 
   <main>
     <!-- LEFT: Controls -->
@@ -522,9 +525,21 @@
     // ── INIT ─────────────────────────────────────────────────────────────────
     function init() {
       renderStyleGrid();
-      handleRedirectKey();   // check URL fragment first (coming back from auth)
-      restoreSession();      // then check localStorage
+
+      // DEBUG — remove before shipping
+      const debugEl = document.getElementById('debug-output');
+      debugEl.style.display = 'block';
+      debugEl.innerHTML = `
+        <b>location.hash:</b> ${JSON.stringify(location.hash)}<br>
+        <b>location.href:</b> ${location.href}<br>
+        <b>localStorage key:</b> ${JSON.stringify(localStorage.getItem('pollinations_key'))}
+      `;
+
+      handleRedirectKey();
+      restoreSession();
       updateAuthUI();
+
+      debugEl.innerHTML += `<br><b>apiKey after init:</b> ${JSON.stringify(apiKey)}`;
     }
 
     // ── BYOP AUTH ─────────────────────────────────────────────────────────────
