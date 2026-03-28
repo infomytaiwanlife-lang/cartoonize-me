@@ -4,15 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ToonMe — Cartoon Avatar Generator</title>
-  <link href="style.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Nunito:wght@400;600;800&display=swap" rel="stylesheet" />
-  <!-- <style>
+  <!-- ⚠️ Replace with your own App Key from enter.pollinations.ai -->
+  <script>const APP_KEY = 'pk_yourkey';</script>
+  <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --ink:    #1a1a2e;
       --paper:  #fffdf4;
-      --yellow: #ffbb00;
+      --yellow: #ffd600;
       --red:    #ff3b3b;
       --blue:   #3b82f6;
       --shadow: 5px 5px 0 var(--ink);
@@ -56,66 +57,73 @@
       text-transform: uppercase;
     }
 
-    /* ── API KEY BANNER ── */
-    #key-banner {
+    /* ── AUTH BAR ── */
+    #auth-bar {
       background: #fff8dc;
       border-bottom: 3px solid var(--yellow);
-      padding: 0.75rem 2rem;
+      padding: 0.7rem 2rem;
       display: flex;
       align-items: center;
       gap: 1rem;
       flex-wrap: wrap;
     }
 
-    #key-banner label {
-      font-weight: 800;
-      font-size: 0.85rem;
-      white-space: nowrap;
-    }
-
-    #key-banner .key-input-wrap {
+    #auth-status {
       display: flex;
-      gap: 0.5rem;
+      align-items: center;
+      gap: 0.75rem;
       flex: 1;
-      min-width: 260px;
-      max-width: 480px;
     }
 
-    #key-input {
-      flex: 1;
-      padding: 0.45rem 0.75rem;
-      border: 3px solid var(--ink);
-      border-radius: var(--radius);
-      font-family: 'Courier New', monospace;
-      font-size: 0.85rem;
-      background: white;
-      box-shadow: 3px 3px 0 var(--ink);
-      outline: none;
+    #auth-status .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--ink);
+      display: none;
     }
-    #key-input:focus { border-color: var(--blue); box-shadow: 3px 3px 0 var(--blue); }
 
-    .btn-save-key {
-      padding: 0.45rem 1rem;
-      background: var(--ink);
-      color: var(--yellow);
+    #auth-status .user-name {
+      font-weight: 800;
+      font-size: 0.88rem;
+    }
+
+    #auth-status .user-label {
+      font-size: 0.75rem;
+      color: #888;
+    }
+
+    .btn-auth {
+      padding: 0.45rem 1.1rem;
       border: 3px solid var(--ink);
       border-radius: var(--radius);
       font-family: 'Nunito', sans-serif;
       font-weight: 800;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       cursor: pointer;
-      box-shadow: 3px 3px 0 #555;
       transition: transform 0.1s, box-shadow 0.1s;
     }
-    .btn-save-key:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #555; }
-    .btn-save-key:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #555; }
 
-    #key-status { font-size: 0.8rem; font-weight: 700; }
-    #key-status.ok   { color: #16a34a; }
-    #key-status.warn { color: var(--red); }
+    .btn-auth.connect {
+      background: var(--yellow);
+      color: var(--ink);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+    .btn-auth.connect:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 var(--ink); }
+    .btn-auth.connect:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 var(--ink); }
 
-    .key-hint { font-size: 0.75rem; color: #777; }
-    .key-hint a { color: var(--blue); font-weight: 700; }
+    .btn-auth.disconnect {
+      background: white;
+      color: var(--red);
+      box-shadow: 3px 3px 0 #ccc;
+    }
+    .btn-auth.disconnect:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #ccc; }
+
+    #auth-bar .byop-label {
+      font-size: 0.72rem;
+      color: #999;
+      font-weight: 700;
+    }
 
     /* ── MAIN LAYOUT ── */
     main {
@@ -362,7 +370,7 @@
       color: #888;
       text-align: center;
     }
-  </style> -->
+  </style>
 </head>
 <body>
 
@@ -373,23 +381,22 @@
     </div>
   </header>
 
-  <!-- API Key Banner -->
-  <div id="key-banner">
-    <label for="key-input">🔑 Pollinations API Key</label>
-    <div class="key-input-wrap">
-      <input
-        id="key-input"
-        type="password"
-        placeholder="pk_xxxxxxxxxxxxxxxx"
-        autocomplete="off"
-        spellcheck="false"
-      />
-      <button class="btn-save-key" onclick="saveKey()">Save</button>
+  <!-- BYOP Auth Bar -->
+  <div id="auth-bar">
+    <div id="auth-status">
+      <img class="avatar" id="user-avatar" alt="" />
+      <div>
+        <div class="user-name" id="user-name">Not connected</div>
+        <div class="user-label">Connect to use your own Pollinations pollen</div>
+      </div>
     </div>
-    <span id="key-status"></span>
-    <span class="key-hint">
-      Get yours free at <a href="https://enter.pollinations.ai" target="_blank" rel="noopener">enter.pollinations.ai</a>
-    </span>
+    <button class="btn-auth connect" id="btn-connect" onclick="connectPollinations()">
+      🌼 Connect with Pollinations
+    </button>
+    <button class="btn-auth disconnect" id="btn-disconnect" style="display:none" onclick="disconnect()">
+      Disconnect
+    </button>
+    <span class="byop-label">Powered by BYOP</span>
   </div>
 
   <main>
@@ -510,49 +517,93 @@
     ];
 
     let selectedStyleId = null;
-    let apiKey = localStorage.getItem('pollinations_key') || '';
+    let apiKey = null;
 
     // ── INIT ─────────────────────────────────────────────────────────────────
     function init() {
       renderStyleGrid();
-      if (apiKey) {
-        document.getElementById('key-input').value = apiKey;
-        setKeyStatus(true);
-      }
+      handleRedirectKey();   // check URL fragment first (coming back from auth)
+      restoreSession();      // then check localStorage
+      updateAuthUI();
     }
 
-    function renderStyleGrid() {
-      const grid = document.getElementById('style-grid');
-      STYLES.forEach(style => {
-        const btn = document.createElement('button');
-        btn.className = 'style-btn';
-        btn.dataset.id = style.id;
-        btn.innerHTML = `<span class="emoji">${style.emoji}</span>${style.label}`;
-        btn.addEventListener('click', () => selectStyle(style.id));
-        grid.appendChild(btn);
+    // ── BYOP AUTH ─────────────────────────────────────────────────────────────
+    // Step 1: redirect user to Pollinations authorize screen
+    function connectPollinations() {
+      const params = new URLSearchParams({
+        redirect_url: location.href.split('#')[0], // clean URL, no stale fragment
+        app_key: APP_KEY,
       });
+      window.location.href = `https://enter.pollinations.ai/authorize?${params}`;
     }
 
-    // ── KEY MANAGEMENT ────────────────────────────────────────────────────────
-    function saveKey() {
-      const val = document.getElementById('key-input').value.trim();
-      if (!val) {
-        setKeyStatus(false, 'Enter a key first.');
-        return;
-      }
-      apiKey = val;
+    // Step 2: on return, grab key from URL fragment (#api_key=sk_...)
+    // Fragment never hits server logs — it's client-only. Safe.
+    function handleRedirectKey() {
+      const hash = new URLSearchParams(location.hash.slice(1));
+      const key = hash.get('api_key');
+      if (!key) return;
+
+      apiKey = key;
       localStorage.setItem('pollinations_key', apiKey);
-      setKeyStatus(true, 'Saved!');
+
+      // Clean the fragment from the URL so reloads don't re-process it
+      history.replaceState(null, '', location.pathname + location.search);
+
+      fetchUserInfo();
     }
 
-    function setKeyStatus(ok, msg) {
-      const el = document.getElementById('key-status');
-      if (ok) {
-        el.textContent = msg || '✅ Key saved';
-        el.className = 'ok';
-      } else {
-        el.textContent = '⚠️ ' + (msg || 'No key set');
-        el.className = 'warn';
+    function restoreSession() {
+      if (apiKey) return; // already set from redirect
+      const stored = localStorage.getItem('pollinations_key');
+      if (!stored) return;
+      apiKey = stored;
+      const name = localStorage.getItem('pollinations_user_name');
+      const pic  = localStorage.getItem('pollinations_user_pic');
+      if (name) renderUserInfo(name, pic);
+    }
+
+    function disconnect() {
+      apiKey = null;
+      localStorage.removeItem('pollinations_key');
+      localStorage.removeItem('pollinations_user_name');
+      localStorage.removeItem('pollinations_user_pic');
+      updateAuthUI();
+    }
+
+    // Optional: fetch the user's display name + avatar to show in the bar
+    async function fetchUserInfo() {
+      try {
+        const res = await fetch('https://enter.pollinations.ai/api/device/userinfo', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const name = data.name || data.preferred_username || 'Connected';
+        const pic  = data.picture || '';
+        localStorage.setItem('pollinations_user_name', name);
+        localStorage.setItem('pollinations_user_pic', pic);
+        renderUserInfo(name, pic);
+      } catch {
+        // Non-fatal: we still have the key, just no display name
+        updateAuthUI();
+      }
+    }
+
+    function renderUserInfo(name, pic) {
+      document.getElementById('user-name').textContent = `✅ ${name}`;
+      const avatar = document.getElementById('user-avatar');
+      if (pic) { avatar.src = pic; avatar.style.display = 'block'; }
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      const connected = !!apiKey;
+      document.getElementById('btn-connect').style.display    = connected ? 'none'         : 'inline-block';
+      document.getElementById('btn-disconnect').style.display = connected ? 'inline-block' : 'none';
+      if (!connected) {
+        document.getElementById('user-name').textContent = 'Not connected';
+        document.getElementById('user-avatar').style.display = 'none';
       }
     }
 
@@ -599,8 +650,7 @@
     // ── GENERATE ──────────────────────────────────────────────────────────────
     async function generate() {
       if (!apiKey) {
-        setKeyStatus(false, 'Add your API key first!');
-        document.getElementById('key-input').focus();
+        showError('Connect your Pollinations account first using the button above.');
         return;
       }
 
