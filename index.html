@@ -567,8 +567,11 @@
       apiKey = key;
       localStorage.setItem('pollinations_key', apiKey);
 
-      // Clean the fragment so a reload doesn't re-process it
-      history.replaceState(null, '', location.pathname + location.search);
+      // Clean the fragment — wrapped in try/catch because history.replaceState
+      // throws on file:// URLs. Non-fatal: the key is already saved.
+      try {
+        history.replaceState(null, '', location.pathname + location.search);
+      } catch (e) { /* file:// — ignore */ }
 
       fetchUserInfo();
     }
@@ -593,6 +596,8 @@
 
     // Optional: fetch the user's display name + avatar to show in the bar
     async function fetchUserInfo() {
+      // Always update auth UI first — key is already valid even if userinfo fails
+      updateAuthUI();
       try {
         const res = await fetch('https://enter.pollinations.ai/api/device/userinfo', {
           headers: { 'Authorization': `Bearer ${apiKey}` }
@@ -605,8 +610,7 @@
         localStorage.setItem('pollinations_user_pic', pic);
         renderUserInfo(name, pic);
       } catch {
-        // Non-fatal: we still have the key, just no display name
-        updateAuthUI();
+        // Non-fatal: network blocked or CORS — key still works
       }
     }
 
