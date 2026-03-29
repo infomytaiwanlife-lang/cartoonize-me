@@ -1,0 +1,319 @@
+
+    // ── STYLES DATA ──────────────────────────────────────────────────────────
+    const STYLES = [
+      {
+        id: 'simpsons',
+        label: 'The Simpsons',
+        emoji: '🟡',
+        prompt: 'in the style of The Simpsons animated cartoon, yellow skin, overbite, simple design, Matt Groening art style'
+      },
+      {
+        id: 'southpark',
+        label: 'South Park',
+        emoji: '🧢',
+        prompt: 'in the style of South Park animated show, simple flat cutout cartoon character, Trey Parker Matt Stone art style'
+      },
+      {
+        id: 'pokemon',
+        label: 'Pokémon',
+        emoji: '⚡',
+        prompt: 'as a Pokémon trainer character, in the style of Pokémon anime, Ken Sugimori art style, vibrant colors, clean lines'
+      },
+      {
+        id: 'disney',
+        label: 'Disney',
+        emoji: '🏰',
+        prompt: 'in the style of classic Disney animation, expressive eyes, clean lines, vibrant Disney art style, hand-drawn look'
+      },
+      {
+        id: 'manga',
+        label: 'Manga / Anime',
+        emoji: '🎌',
+        prompt: 'as a manga anime character, large expressive eyes, Japanese anime art style, clean ink line art, cel shading'
+      },
+      {
+        id: 'pixar',
+        label: 'Pixar 3D',
+        emoji: '🎬',
+        prompt: 'in the style of Pixar 3D animated movie character, highly detailed, expressive, soft cinematic lighting, subsurface scattering'
+      },
+      {
+        id: 'looney',
+        label: 'Looney Tunes',
+        emoji: '🐰',
+        prompt: 'in the style of classic Looney Tunes cartoon, exaggerated rubbery features, Warner Bros classic animation, bold outlines'
+      },
+      {
+        id: 'adventure',
+        label: 'Adventure Time',
+        emoji: '🗡️',
+        prompt: 'in the style of Adventure Time cartoon, simple rounded shapes, flat bright colors, Pendleton Ward art style'
+      },
+      {
+        id: 'custom',
+        label: 'Custom…',
+        emoji: '✨',
+        prompt: null
+      }
+    ];
+
+    let selectedStyleId = null;
+    let apiKey = null;
+
+    // ── INIT ─────────────────────────────────────────────────────────────────
+    function init() {
+      renderStyleGrid();
+
+      // DEBUG — remove before shipping
+      const debugEl = document.getElementById('debug-output');
+      debugEl.style.display = 'block';
+      debugEl.innerHTML = `
+        <b>location.hash:</b> ${JSON.stringify(location.hash)}<br>
+        <b>location.href:</b> ${location.href}<br>
+        <b>localStorage key:</b> ${JSON.stringify(localStorage.getItem('pollinations_key'))}
+      `;
+
+      handleRedirectKey();
+      restoreSession();
+      updateAuthUI();
+
+      debugEl.innerHTML += `<br><b>apiKey after init:</b> ${JSON.stringify(apiKey)}`;
+    }
+
+    // ── BYOP AUTH ─────────────────────────────────────────────────────────────
+    // Step 1: redirect user to Pollinations authorize screen
+    function connectPollinations() {
+      const params = new URLSearchParams({
+        redirect_url: location.href.split('#')[0], // clean URL, no stale fragment
+        app_key: APP_KEY,
+      });
+      window.location.href = `https://enter.pollinations.ai/authorize?${params}`;
+    }
+
+    // Step 2: on return, grab key from URL fragment (#api_key=sk_...)
+    // Fragment never hits server logs — it's client-only. Safe.
+    function handleRedirectKey() {
+      const raw = location.hash; // e.g. "#api_key=sk_abc123"
+      if (!raw || !raw.includes('api_key=')) return;
+
+      // Regex is safer than URLSearchParams here — avoids encoding edge cases
+      const match = raw.match(/[#&]api_key=([^&]+)/);
+      if (!match) return;
+      const key = decodeURIComponent(match[1]);
+      if (!key) return;
+
+      apiKey = key;
+      localStorage.setItem('pollinations_key', apiKey);
+
+      // Clean the fragment — wrapped in try/catch because history.replaceState
+      // throws on file:// URLs. Non-fatal: the key is already saved.
+      try {
+        history.replaceState(null, '', location.pathname + location.search);
+      } catch (e) { /* file:// — ignore */ }
+
+      fetchUserInfo();
+    }
+
+    function restoreSession() {
+      if (apiKey) return; // already set from redirect
+      const stored = localStorage.getItem('pollinations_key');
+      if (!stored) return;
+      apiKey = stored;
+      const name = localStorage.getItem('pollinations_user_name');
+      const pic  = localStorage.getItem('pollinations_user_pic');
+      if (name) renderUserInfo(name, pic);
+    }
+
+    function disconnect() {
+      apiKey = null;
+      localStorage.removeItem('pollinations_key');
+      localStorage.removeItem('pollinations_user_name');
+      localStorage.removeItem('pollinations_user_pic');
+      updateAuthUI();
+    }
+
+    // Optional: fetch the user's display name + avatar to show in the bar
+    async function fetchUserInfo() {
+      // Always update auth UI first — key is already valid even if userinfo fails
+      updateAuthUI();
+      try {
+        const res = await fetch('https://enter.pollinations.ai/api/device/userinfo', {
+          headers: { 'Authorization': `Bearer ${apiKey}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const name = data.name || data.preferred_username || 'Connected';
+        const pic  = data.picture || '';
+        localStorage.setItem('pollinations_user_name', name);
+        localStorage.setItem('pollinations_user_pic', pic);
+        renderUserInfo(name, pic);
+      } catch {
+        // Non-fatal: network blocked or CORS — key still works
+      }
+    }
+
+    function renderUserInfo(name, pic) {
+      document.getElementById('user-name').textContent = `✅ ${name}`;
+      const avatar = document.getElementById('user-avatar');
+      if (pic) { avatar.src = pic; avatar.style.display = 'block'; }
+      updateAuthUI();
+    }
+
+    function updateAuthUI() {
+      const connected = !!apiKey;
+      document.getElementById('btn-connect').style.display    = connected ? 'none'         : 'inline-block';
+      document.getElementById('btn-disconnect').style.display = connected ? 'inline-block' : 'none';
+      if (!connected) {
+        document.getElementById('user-name').textContent = 'Not connected';
+        document.getElementById('user-avatar').style.display = 'none';
+      }
+    }
+
+    // ── STYLE SELECTION ───────────────────────────────────────────────────────
+    function renderStyleGrid() {
+      const grid = document.getElementById('style-grid');
+      grid.innerHTML = STYLES.map(s => `
+        <button class="style-btn" data-id="${s.id}" onclick="selectStyle('${s.id}')">
+          <span class="emoji">${s.emoji}</span>${s.label}
+        </button>
+      `).join('');
+    }
+
+    function selectStyle(id) {
+      selectedStyleId = id;
+      document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.id === id);
+      });
+      if (id !== 'custom') {
+        document.getElementById('custom-style').value = '';
+      }
+    }
+
+    function onCustomStyleInput() {
+      const val = document.getElementById('custom-style').value.trim();
+      if (val) {
+        selectStyle('custom');
+      } else if (selectedStyleId === 'custom') {
+        selectedStyleId = null;
+        document.querySelectorAll('.style-btn').forEach(btn => btn.classList.remove('active'));
+      }
+    }
+
+    // ── PROMPT BUILDER ────────────────────────────────────────────────────────
+    function buildPrompt() {
+      const description = document.getElementById('description').value.trim();
+      const customStyle = document.getElementById('custom-style').value.trim();
+
+      if (!description) throw new Error('Please describe yourself first.');
+      if (!selectedStyleId) throw new Error('Please pick a cartoon style.');
+
+      let stylePrompt;
+      if (selectedStyleId === 'custom') {
+        if (!customStyle) throw new Error('Enter a custom style or pick a preset.');
+        stylePrompt = `in the style of ${customStyle} cartoon animation`;
+      } else {
+        stylePrompt = STYLES.find(s => s.id === selectedStyleId).prompt;
+      }
+
+      return `cartoon avatar portrait of a person, ${description}, ${stylePrompt}, character art, clean illustration, white background`;
+    }
+
+    // ── GENERATE ──────────────────────────────────────────────────────────────
+    async function generate() {
+      if (!apiKey) {
+        showError('Connect your Pollinations account first using the button above.');
+        return;
+      }
+
+      let prompt;
+      try {
+        prompt = buildPrompt();
+      } catch (e) {
+        showError(e.message);
+        return;
+      }
+
+      setLoading(true);
+      showPromptPreview(prompt);
+
+      // Random seed so re-generating always yields a different result.
+      const seed = Math.floor(Math.random() * 999999);
+      // image.pollinations.ai is the direct image endpoint; key goes as query param.
+      const url = [
+        'https://image.pollinations.ai/prompt/',
+        encodeURIComponent(prompt),
+        '?width=512&height=512&model=flux&nologo=true',
+        '&seed=', seed,
+        '&key=', encodeURIComponent(apiKey)
+      ].join('');
+
+      try {
+        await loadImage(url);
+        showResult(url);
+      } catch {
+        showError('Generation failed. Double-check your API key and try again.');
+      } finally {
+        // Only re-enable the button; do NOT touch placeholder visibility here —
+        // showResult / showError already manage that correctly.
+        document.getElementById('generate-btn').disabled = false;
+        document.getElementById('loading').style.display = 'none';
+      }
+    }
+
+    // Wraps img.src load in a promise so we can await it cleanly.
+    function loadImage(src) {
+      return new Promise((resolve, reject) => {
+        const img = document.getElementById('result-img');
+        const timer = setTimeout(() => reject(new Error('Timeout')), 90000);
+        img.onload  = () => { clearTimeout(timer); resolve(); };
+        img.onerror = () => { clearTimeout(timer); reject(new Error('Load error')); };
+        img.src = src;
+      });
+    }
+
+    // ── UI STATE HELPERS ──────────────────────────────────────────────────────
+    function setLoading(on) {
+      document.getElementById('loading').style.display     = on ? 'block' : 'none';
+      document.getElementById('placeholder').style.display = on ? 'none'  : '';
+      document.getElementById('generate-btn').disabled     = on;
+      if (on) {
+        document.getElementById('result-img').style.display   = 'none';
+        document.getElementById('error-msg').style.display    = 'none';
+        document.getElementById('download-btn').style.display = 'none';
+        document.getElementById('result-meta').style.display  = 'none';
+        document.getElementById('placeholder').style.display  = 'none';
+      }
+    }
+
+    function showResult(url) {
+      document.getElementById('result-img').style.display = 'block';
+
+      const dl = document.getElementById('download-btn');
+      dl.href = url;
+      dl.style.display = 'inline-block';
+
+      const styleLabel = selectedStyleId === 'custom'
+        ? document.getElementById('custom-style').value.trim()
+        : STYLES.find(s => s.id === selectedStyleId)?.label;
+
+      const meta = document.getElementById('result-meta');
+      meta.textContent = `Style: ${styleLabel} • 512×512 • Powered by Pollinations AI`;
+      meta.style.display = 'block';
+
+      document.getElementById('placeholder').style.display = 'none';
+    }
+
+    function showError(msg) {
+      setLoading(false);
+      document.getElementById('error-msg').textContent = '⚠️ ' + msg;
+      document.getElementById('error-msg').style.display = 'block';
+      document.getElementById('placeholder').style.display = 'none';
+    }
+
+    function showPromptPreview(prompt) {
+      document.getElementById('prompt-text').textContent = prompt;
+      document.getElementById('prompt-preview').style.display = 'block';
+    }
+
+    // ── BOOT ──────────────────────────────────────────────────────────────────
+    init();
