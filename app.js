@@ -3,7 +3,7 @@
     const STYLES = [
       {
         id: 'simpsons',
-        label: 'The Simpsons',
+        label: 'The Simpsons', 
         emoji: '🟡',
         prompt: 'in the style of The Simpsons animated cartoon, yellow skin, overbite, simple design, Matt Groening art style'
       },
