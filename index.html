@@ -632,6 +632,15 @@
     }
 
     // ── STYLE SELECTION ───────────────────────────────────────────────────────
+    function renderStyleGrid() {
+      const grid = document.getElementById('style-grid');
+      grid.innerHTML = STYLES.map(s => `
+        <button class="style-btn" data-id="${s.id}" onclick="selectStyle('${s.id}')">
+          <span class="emoji">${s.emoji}</span>${s.label}
+        </button>
+      `).join('');
+    }
+
     function selectStyle(id) {
       selectedStyleId = id;
       document.querySelectorAll('.style-btn').forEach(btn => {
